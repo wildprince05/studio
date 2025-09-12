@@ -1,6 +1,6 @@
 'use client';
 
-import type { Train, Conflict, UserPreferences } from '@/lib/types';
+import type { Train, Conflict, UserPreferences, Weather, Maintenance } from '@/lib/types';
 import { useState } from 'react';
 import {
   AlertTriangle,
@@ -42,6 +42,8 @@ type DashboardLayoutProps = {
   activeTrain: Train | undefined;
   activeConflict: Conflict | undefined;
   preferences: UserPreferences;
+  weatherData: Weather[];
+  maintenanceData: Maintenance[];
   onUpdatePreferences: (preferences: UserPreferences) => void;
   onSelectTrain: (id: string | null) => void;
   onSelectConflict: (id: string | null) => void;
@@ -59,6 +61,8 @@ export function DashboardLayout({
   activeTrain,
   activeConflict,
   preferences,
+  weatherData,
+  maintenanceData,
   onUpdatePreferences,
   onSelectTrain,
   onSelectConflict,

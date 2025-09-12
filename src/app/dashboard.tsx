@@ -113,6 +113,8 @@ export default function Dashboard() {
       activeTrain={activeTrain}
       activeConflict={activeConflict}
       preferences={preferences}
+      weatherData={weatherData}
+      maintenanceData={maintenanceData}
       onUpdatePreferences={setPreferences}
       onSelectTrain={handleSelectTrain}
       onSelectConflict={handleSelectConflict}
