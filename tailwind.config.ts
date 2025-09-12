@@ -1,4 +1,5 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 
 export default {
   darkMode: ['class'],
@@ -95,5 +96,29 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    plugin(function ({ matchUtilities, theme }) {
+      matchUtilities(
+        {
+          'pattern': (value) => ({
+            backgroundImage: `url("${value}")`,
+          }),
+        },
+        { values: theme('backgroundImage') }
+      );
+    }),
+     plugin(function ({ addUtilities, theme }) {
+      const newUtilities = {
+        '.pattern-dots': {
+          '--dot-color': theme('colors.gray.400'),
+          '--dot-size': '1px',
+          '--dot-space': '22px',
+          'backgroundImage': `radial-gradient(var(--dot-color) var(--dot-size), transparent var(--dot-size))`,
+          'backgroundSize': 'var(--dot-space) var(--dot-space)',
+        },
+      }
+      addUtilities(newUtilities, ['responsive', 'hover'])
+    })
+  ],
 } satisfies Config;
