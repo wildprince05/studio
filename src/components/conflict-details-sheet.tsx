@@ -75,7 +75,7 @@ export function ConflictDetailsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg w-full p-0">
+      <SheetContent className="sm:max-w-lg w-full">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6">
             <SheetTitle className="flex items-center gap-2 text-2xl">
