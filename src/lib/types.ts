@@ -8,6 +8,7 @@ export interface Train {
   status: 'On Time' | 'Delayed' | 'Cancelled';
   currentLocation: { lat: number; lng: number };
   route: string[];
+  currentSpeed?: number;
 }
 
 export interface Conflict {

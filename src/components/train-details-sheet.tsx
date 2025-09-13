@@ -17,6 +17,7 @@ import {
   Thermometer,
   Wind,
   Wrench,
+  Gauge,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -103,9 +104,12 @@ export function TrainDetailsSheet({
           <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-6">
             <Card>
               <CardContent className="pt-6 space-y-4">
+                <InfoItem icon={MapPin} label="Status" value={<Badge variant={train.status === 'On Time' ? 'default' : 'destructive'} className={train.status === 'On Time' ? 'bg-green-600' : ''}>{train.status}</Badge>} />
                 <InfoItem icon={Clock} label="Departure" value={new Date(train.departureTime).toLocaleTimeString()} />
                 <InfoItem icon={Clock} label="Arrival" value={new Date(train.arrivalTime).toLocaleTimeString()} />
-                <InfoItem icon={MapPin} label="Current Status" value={<Badge variant={train.status === 'On Time' ? 'default' : 'destructive'} className={train.status === 'On Time' ? 'bg-green-600' : ''}>{train.status}</Badge>} />
+                {train.currentSpeed && (
+                  <InfoItem icon={Gauge} label="Current Speed" value={`${train.currentSpeed} km/h`} />
+                )}
               </CardContent>
             </Card>
 
@@ -177,7 +181,7 @@ function InfoItem({ icon: Icon, label, value }: { icon: React.ElementType, label
                 <Icon className="h-4 w-4" />
                 <span>{label}</span>
             </div>
-            <span className="font-medium">{value}</span>
+            <span className="font-medium text-right">{value}</span>
         </div>
     );
 }

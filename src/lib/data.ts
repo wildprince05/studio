@@ -11,6 +11,7 @@ export const initialTrains: Train[] = [
     status: 'On Time',
     currentLocation: { lat: 34.0522, lng: -118.2437 },
     route: ['Central Station', 'Midtown', 'Uptown', 'North Hub'],
+    currentSpeed: 80,
   },
   {
     id: 'T002',
@@ -22,6 +23,7 @@ export const initialTrains: Train[] = [
     status: 'On Time',
     currentLocation: { lat: 34.1522, lng: -118.4437 },
     route: ['East Port', 'Seaside Town', 'Ocean View', 'West Bay'],
+    currentSpeed: 95,
   },
   {
     id: 'T003',
@@ -33,6 +35,7 @@ export const initialTrains: Train[] = [
     status: 'On Time',
     currentLocation: { lat: 33.9522, lng: -118.1437 },
     route: ['South Peak', 'Pine Forest', 'River Cross', 'Valley Town'],
+    currentSpeed: 60,
   },
   {
     id: 'T004',
@@ -44,6 +47,7 @@ export const initialTrains: Train[] = [
     status: 'On Time',
     currentLocation: { lat: 34.0022, lng: -118.3437 },
     route: ['Factory Complex', 'Uptown', 'Cargo Terminal', 'Distribution Center'],
+    currentSpeed: 45,
   },
 ];
 

@@ -8,6 +8,7 @@ import {
   Move,
   ZoomIn,
   ZoomOut,
+  Minus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -20,15 +21,22 @@ type MapItemPosition = {
 
 const MAP_GRID_SIZE = 20;
 
+const positionCache = new Map<string, MapItemPosition>();
+
 const generatePosition = (id: string): MapItemPosition => {
+  if (positionCache.has(id)) {
+    return positionCache.get(id)!;
+  }
   const hash = id.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
   const x = Math.abs(hash) % MAP_GRID_SIZE;
   const y = Math.abs(hash * 31) % MAP_GRID_SIZE;
   
-  return {
+  const position = {
     top: `${(y / MAP_GRID_SIZE) * 100}%`,
     left: `${(x / MAP_GRID_SIZE) * 100}%`,
   };
+  positionCache.set(id, position);
+  return position;
 };
 
 export function MapVisualization({
@@ -50,6 +58,11 @@ export function MapVisualization({
     const newPositions: Record<string, MapItemPosition> = {};
     trains.forEach(train => {
       newPositions[train.id] = generatePosition(train.id);
+      train.route.forEach(station => {
+        if (!newPositions[station]) {
+          newPositions[station] = generatePosition(station);
+        }
+      });
     });
     conflicts.forEach(conflict => {
       newPositions[conflict.id] = generatePosition(conflict.location);
@@ -75,7 +88,32 @@ export function MapVisualization({
       <TooltipProvider>
         <div className="absolute inset-0 bg-background pattern-dots pattern-gray-300 pattern-bg-white pattern-size-6 pattern-opacity-20 dark:pattern-gray-700 dark:pattern-bg-slate-900"></div>
         
-        {gridLines}
+        <svg className="absolute inset-0 w-full h-full">
+          {trains.map(train => (
+            <g key={`route-${train.id}`}>
+              {train.route.slice(0, -1).map((station, index) => {
+                const nextStation = train.route[index + 1];
+                const pos1 = positions[station];
+                const pos2 = positions[nextStation];
+                if (!pos1 || !pos2) return null;
+                
+                return (
+                  <line
+                    key={`${train.id}-${station}-${nextStation}`}
+                    x1={pos1.left}
+                    y1={pos1.top}
+                    x2={pos2.left}
+                    y2={pos2.top}
+                    className={cn(
+                      "stroke-current transition-all duration-300",
+                      activeTrainId === train.id ? 'text-primary/70 stroke-[3]' : 'text-muted-foreground/30 stroke-[2]'
+                    )}
+                  />
+                )
+              })}
+            </g>
+          ))}
+        </svg>
 
         {Object.entries(positions).map(([id, pos]) => {
           const train = trains.find(t => t.id === id);
@@ -139,6 +177,23 @@ export function MapVisualization({
               </Tooltip>
             );
           }
+          
+          const stationName = trains.flatMap(t => t.route).find(r => r === id);
+          if (stationName) {
+            return (
+              <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50"></div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{stationName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )
+          }
+
           return null;
         })}
 
