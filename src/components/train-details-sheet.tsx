@@ -32,7 +32,6 @@ import {
   CardHeader,
   CardTitle,
 } from './ui/card';
-import { RouteTimeline } from './route-timeline';
 
 type TrainDetailsSheetProps = {
   train?: Train;
@@ -136,17 +135,6 @@ export function TrainDetailsSheet({
                     value={`${train.currentSpeed} km/h`}
                   />
                 )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Route /> Route Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RouteTimeline train={train} />
               </CardContent>
             </Card>
 

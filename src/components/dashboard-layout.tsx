@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkles,
   Train as TrainIcon,
+  Route,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -35,6 +36,7 @@ import {
   CardHeader,
   CardTitle,
 } from './ui/card';
+import { RouteTimeline } from './route-timeline';
 
 type DashboardLayoutProps = {
   trains: Train[];
@@ -165,7 +167,19 @@ export function DashboardLayout({
             </Button>
           </div>
 
-          {trains.length > 0 ? (
+          {activeTrain ? (
+             <div className="flex flex-col h-full flex-1 items-center justify-center p-8">
+                <Card className="w-full max-w-6xl">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Route/> {activeTrain.name} Route</CardTitle>
+                        <CardDescription>{activeTrain.origin} &rarr; {activeTrain.destination}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <RouteTimeline train={activeTrain} />
+                    </CardContent>
+                </Card>
+             </div>
+          ) : trains.length > 0 ? (
             <MapVisualization
               trains={trains}
               conflicts={conflicts}
