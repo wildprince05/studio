@@ -7,7 +7,8 @@ import {
   Move,
   Plus,
   Minus,
-  MapPin
+  MapPin,
+  TrainFront
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -199,11 +200,9 @@ export function MapVisualization({
                   <path 
                     key={`${train.id}-${fromStation}-${toStation}`}
                     d={pathData}
-                    strokeDasharray="4 4"
                     stroke={'hsl(var(--primary)/0.5)'}
                     strokeWidth="2"
                     fill="none"
-                    strokeLinecap="round"
                   />
                 )
               })
@@ -220,7 +219,7 @@ export function MapVisualization({
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <div className={cn("flex items-center justify-center")}>
-                        <MapPin className="w-5 h-5 text-gray-400" />
+                        <div className="w-2.5 h-2.5 bg-gray-400 border-2 border-background rounded-full" />
                      </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -238,8 +237,7 @@ export function MapVisualization({
             if (!train) return null;
             const isActive = train.id === activeTrainId;
             
-            const trainColor = train.delay > 0 ? 'bg-yellow-400' : 'bg-green-500';
-            const trainRingColor = train.delay > 0 ? 'ring-yellow-400' : 'ring-green-500';
+            const trainColor = train.delay > 0 ? 'text-yellow-400' : 'text-green-500';
             
             return (
               <Tooltip key={train.id}>
@@ -252,8 +250,7 @@ export function MapVisualization({
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                     <div className={cn("w-3 h-3 rounded-full ring-2 ring-offset-2 ring-offset-background", trainRingColor, trainColor)}>
-                     </div>
+                     <TrainFront className={cn("w-6 h-6 drop-shadow-lg", isActive ? "text-primary" : trainColor)} />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -35,6 +35,7 @@ import { UserPreferencesDialog } from '@/components/user-preferences-dialog';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { Header } from '@/components/header';
 import { StatsCards } from '@/components/stats-cards';
+import { TrainFront } from 'lucide-react';
 
 type DashboardLayoutProps = {
   trains: Train[];
@@ -181,10 +182,10 @@ export function DashboardLayout({
                     </Button>
                     <div className="bg-background/50 backdrop-blur-sm p-3 rounded-lg border">
                         <ul className="space-y-2 text-sm">
-                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-green-500 fill-green-500"/> On Time</li>
-                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-yellow-400 fill-yellow-400"/> Delayed</li>
-                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-red-500 fill-red-500"/> Conflict</li>
-                            <li className="flex items-center gap-2"><MapPin className="h-3 w-3 text-gray-400"/> Stations</li>
+                            <li className="flex items-center gap-2"><TrainFront className="h-4 w-4 text-green-500"/> On Time</li>
+                            <li className="flex items-center gap-2"><TrainFront className="h-4 w-4 text-yellow-400"/> Delayed</li>
+                            <li className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-500"/> Conflict</li>
+                            <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-gray-400 border-2 border-background" /> Stations</li>
                         </ul>
                     </div>
                 </div>
@@ -228,7 +229,8 @@ export function DashboardLayout({
         conflict={activeConflict}
         preferences={preferences}
         open={isConflictSheetOpen}
-        onOpenChange={onConflictSheetOpenChange}
+        onOpencha
+        nge={onConflictSheetOpenChange}
       />
 
       <UserPreferencesDialog
