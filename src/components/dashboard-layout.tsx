@@ -11,6 +11,7 @@ import {
   Activity,
   MapPin,
   Circle,
+  ScanLine,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -154,34 +155,35 @@ export function DashboardLayout({
 
       <SidebarInset>
         <div className="relative flex h-full min-h-svh flex-1 flex-col p-4">
-          <div className="absolute top-4 right-4 z-20">
-            <Button
-              size="lg"
-              onClick={onDetectConflicts}
-              disabled={isDetectingConflicts}
-              className="shadow-lg"
-            >
-              {isDetectingConflicts ? (
-                <LoadingSpinner className="mr-2 h-5 w-5" />
-              ) : (
-                <Sparkles className="mr-2 h-5 w-5" />
-              )}
-              Scan for Conflicts
-            </Button>
-          </div>
-
           <div className="flex-1 w-full h-full border rounded-xl bg-card/20 backdrop-blur-sm p-6 relative flex flex-col">
-            <div className="flex items-center gap-2 text-xl font-medium mb-4">
-                <Activity className="text-primary" />
-                <h2>Live Network Status</h2>
-            </div>
-            <div className="absolute top-6 right-6 z-10 bg-background/50 backdrop-blur-sm p-3 rounded-lg border">
-                <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-green-500 fill-green-500"/> On Time</li>
-                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-yellow-400 fill-yellow-400"/> Delayed</li>
-                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-red-500 fill-red-500"/> Conflict</li>
-                    <li className="flex items-center gap-2"><MapPin className="h-3 w-3 text-gray-400"/> Stations</li>
-                </ul>
+             <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-center gap-2 text-xl font-medium">
+                    <Activity className="text-primary" />
+                    <h2>Live Network Status</h2>
+                </div>
+                <div className="flex flex-col items-end gap-4">
+                    <Button
+                      size="lg"
+                      onClick={onDetectConflicts}
+                      disabled={isDetectingConflicts}
+                      className="shadow-lg"
+                    >
+                      {isDetectingConflicts ? (
+                        <LoadingSpinner className="mr-2 h-5 w-5" />
+                      ) : (
+                        <ScanLine className="mr-2 h-5 w-5" />
+                      )}
+                      Scan for Conflicts
+                    </Button>
+                    <div className="bg-background/50 backdrop-blur-sm p-3 rounded-lg border">
+                        <ul className="space-y-2 text-sm">
+                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-green-500 fill-green-500"/> On Time</li>
+                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-yellow-400 fill-yellow-400"/> Delayed</li>
+                            <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-red-500 fill-red-500"/> Conflict</li>
+                            <li className="flex items-center gap-2"><MapPin className="h-3 w-3 text-gray-400"/> Stations</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
              <div className="flex-1 w-full h-full rounded-lg overflow-hidden">
                 <MapVisualization
