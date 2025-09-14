@@ -8,7 +8,6 @@ import {
   Move,
   ZoomIn,
   ZoomOut,
-  Minus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -17,6 +16,8 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/t
 type MapItemPosition = {
   top: string;
   left: string;
+  x: number;
+  y: number;
 };
 
 const MAP_GRID_SIZE = 20;
@@ -34,10 +35,31 @@ const generatePosition = (id: string): MapItemPosition => {
   const position = {
     top: `${(y / MAP_GRID_SIZE) * 100}%`,
     left: `${(x / MAP_GRID_SIZE) * 100}%`,
+    x: (x / MAP_GRID_SIZE) * 100,
+    y: (y / MAP_GRID_SIZE) * 100,
   };
   positionCache.set(id, position);
   return position;
 };
+
+
+const getCurrentStationIndex = (train: Train) => {
+    const now = Date.now();
+    const departureTime = new Date(train.departureTime).getTime();
+    const arrivalTime = new Date(train.arrivalTime).getTime();
+
+    if (now < departureTime) return 0; // Not departed yet, at origin
+    if (now > arrivalTime) return train.route.length - 1; // Arrived at destination
+
+    const totalDuration = arrivalTime - departureTime;
+    const elapsedTime = now - departureTime;
+    const progress = elapsedTime / totalDuration;
+    
+    const segmentCount = train.route.length - 1;
+    const currentSegment = Math.floor(progress * segmentCount);
+    
+    return currentSegment;
+}
 
 export function MapVisualization({
   trains,
@@ -53,44 +75,115 @@ export function MapVisualization({
   onSelectTrain: (id: string) => void;
 }) {
   const [positions, setPositions] = useState<Record<string, MapItemPosition>>({});
-  
+  const [currentStationIndices, setCurrentStationIndices] = useState<Record<string, number>>({});
+
   useEffect(() => {
     const newPositions: Record<string, MapItemPosition> = {};
+    const allStations = new Set<string>();
+
     trains.forEach(train => {
-      newPositions[train.id] = generatePosition(train.id);
-      train.route.forEach(station => {
-        if (!newPositions[station]) {
-          newPositions[station] = generatePosition(station);
-        }
-      });
+      train.route.forEach(station => allStations.add(station));
     });
     conflicts.forEach(conflict => {
-      newPositions[conflict.id] = generatePosition(conflict.location);
+       newPositions[conflict.id] = generatePosition(conflict.location);
     });
+
+    allStations.forEach(station => {
+        newPositions[station] = generatePosition(station);
+    });
+
     setPositions(newPositions);
+
+    const updateStations = () => {
+        const indices: Record<string, number> = {};
+        trains.forEach(train => {
+            indices[train.id] = getCurrentStationIndex(train);
+        });
+        setCurrentStationIndices(indices);
+    };
+
+    updateStations();
+    const interval = setInterval(updateStations, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+
   }, [trains, conflicts]);
 
-  const gridLines = useMemo(() => {
-    const lines = [];
-    for (let i = 1; i < MAP_GRID_SIZE; i++) {
-      lines.push(
-        <div key={`v-${i}`} className="absolute top-0 bottom-0 bg-border/50" style={{ left: `${(i / MAP_GRID_SIZE) * 100}%`, width: '1px' }}></div>
-      );
-      lines.push(
-        <div key={`h-${i}`} className="absolute left-0 right-0 bg-border/50" style={{ top: `${(i / MAP_GRID_SIZE) * 100}%`, height: '1px' }}></div>
-      );
-    }
-    return lines;
-  }, []);
+  const trainPositions = useMemo(() => {
+    const newTrainPositions: Record<string, MapItemPosition> = {};
+    trains.forEach(train => {
+      const currentStationIndex = currentStationIndices[train.id] ?? 0;
+      const currentStationName = train.route[currentStationIndex];
+      if (positions[currentStationName]) {
+        newTrainPositions[train.id] = positions[currentStationName];
+      }
+    });
+    return newTrainPositions;
+  }, [trains, positions, currentStationIndices]);
 
   return (
     <div className="relative h-full w-full bg-card flex-1 overflow-hidden">
       <TooltipProvider>
         <div className="absolute inset-0 bg-background pattern-dots pattern-gray-300 pattern-bg-white pattern-size-6 pattern-opacity-20 dark:pattern-gray-700 dark:pattern-bg-slate-900"></div>
         
+        <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+            <defs>
+              <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
+                <circle cx="5" cy="5" r="5" fill="hsl(var(--muted-foreground) / 0.5)" />
+              </marker>
+            </defs>
+            {trains.map(train => (
+              train.route.map((station, index) => {
+                if (index === 0) return null;
+                const fromStation = train.route[index-1];
+                const toStation = station;
+                const pos1 = positions[fromStation];
+                const pos2 = positions[toStation];
+                if (!pos1 || !pos2) return null;
+
+                return (
+                  <line 
+                    key={`${train.id}-${fromStation}-${toStation}`}
+                    x1={`${pos1.x}%`} y1={`${pos1.y}%`}
+                    x2={`${pos2.x}%`} y2={`${pos2.y}%`}
+                    stroke="hsl(var(--muted-foreground) / 0.3)"
+                    strokeWidth="2"
+                    strokeDasharray="4 6"
+                  />
+                )
+              })
+            ))}
+        </svg>
+
+
         {Object.entries(positions).map(([id, pos]) => {
-          const train = trains.find(t => t.id === id);
-          if (train) {
+          const isStation = trains.some(t => t.route.includes(id));
+          const isConflictLocation = conflicts.some(c => c.location === id);
+          
+          if (isStation && !isConflictLocation) {
+             const isTrainHere = trains.some(train => {
+                const currentStationIndex = currentStationIndices[train.id] ?? 0;
+                return train.route[currentStationIndex] === id;
+            });
+            return (
+              <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/50 transition-all", isTrainHere && "w-3 h-3 bg-primary animate-pulse ring-4 ring-primary/30")}></div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{id}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )
+          }
+          return null;
+        })}
+        
+        {Object.entries(trainPositions).map(([trainId, pos]) => {
+            const train = trains.find(t => t.id === trainId);
+            if (!train) return null;
             const isActive = train.id === activeTrainId;
             return (
               <Tooltip key={train.id}>
@@ -125,11 +218,12 @@ export function MapVisualization({
                 </TooltipContent>
               </Tooltip>
             );
-          }
-
-          const conflict = conflicts.find(c => c.id === id);
-          if (conflict) {
-            const isActive = conflict.id === activeConflictId;
+        })}
+        
+        {conflicts.map(conflict => {
+          const pos = positions[conflict.id];
+          if (!pos) return null;
+          const isActive = conflict.id === activeConflictId;
             return (
               <Tooltip key={conflict.id}>
                 <TooltipTrigger asChild>
@@ -149,26 +243,8 @@ export function MapVisualization({
                 </TooltipContent>
               </Tooltip>
             );
-          }
-          
-          const stationName = trains.flatMap(t => t.route).find(r => r === id);
-          if (stationName) {
-            return (
-              <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50"></div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{stationName}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )
-          }
-
-          return null;
         })}
+
 
         <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
             <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm"><ZoomIn /></Button>
