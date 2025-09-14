@@ -111,14 +111,22 @@ export default {
      plugin(function ({ addUtilities, theme }) {
       const newUtilities = {
         '.pattern-dots': {
-          '--dot-color': theme('colors.gray.400'),
+          '--dot-color': 'rgba(255, 255, 255, 0.1)',
           '--dot-size': '1px',
-          '--dot-space': '22px',
+          '--dot-space': '50px',
           'backgroundImage': `radial-gradient(var(--dot-color) var(--dot-size), transparent var(--dot-size))`,
           'backgroundSize': 'var(--dot-space) var(--dot-space)',
         },
       }
-      addUtilities(newUtilities, ['responsive', 'hover'])
+      addUtilities(newUtilities, {
+          variants: ['responsive', 'hover', 'dark'],
+      });
+      const darkUtilities = {
+        '.dark .pattern-dots': {
+          '--dot-color': 'rgba(255, 255, 255, 0.1)',
+        }
+      }
+       addUtilities(darkUtilities)
     })
   ],
 } satisfies Config;

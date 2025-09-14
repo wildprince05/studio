@@ -1,11 +1,13 @@
 export interface Train {
   id: string;
   name: string;
+  type: 'Express' | 'Liner' | 'Hauler' | 'Cargo' | 'Passenger' | 'High-Speed';
   origin: string;
   destination: string;
   departureTime: string;
   arrivalTime: string;
   status: 'On Time' | 'Delayed' | 'Cancelled';
+  delay: number; // in minutes
   currentLocation: { lat: number; lng: number };
   route: string[];
   currentSpeed?: number;

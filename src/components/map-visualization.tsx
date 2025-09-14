@@ -8,6 +8,8 @@ import {
   Move,
   ZoomIn,
   ZoomOut,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -61,6 +63,18 @@ const getCurrentStationIndex = (train: Train) => {
     return currentSegment;
 }
 
+const getCurvePath = (x1: number, y1: number, x2: number, y2: number) => {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const midX = x1 + dx / 2;
+  const midY = y1 + dy / 2;
+  const curvature = 0.2;
+  const ctrlX = midX + dy * curvature;
+  const ctrlY = midY - dx * curvature;
+
+  return `M${x1},${y1} Q${ctrlX},${ctrlY} ${x2},${y2}`;
+};
+
 export function MapVisualization({
   trains,
   conflicts,
@@ -76,6 +90,8 @@ export function MapVisualization({
 }) {
   const [positions, setPositions] = useState<Record<string, MapItemPosition>>({});
   const [currentStationIndices, setCurrentStationIndices] = useState<Record<string, number>>({});
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const newPositions: Record<string, MapItemPosition> = {};
@@ -148,24 +164,30 @@ export function MapVisualization({
     return newTrainPositions;
   }, [trains, positions, currentStationIndices]);
   
-  const waterBodies = useMemo(() => {
-    return [
-        { id: 'water1', top: '70%', left: '80%', width: '30%', height: '30%' },
-        { id: 'water2', top: '0%', left: '75%', width: '25%', height: '40%' },
-    ];
-  }, []);
+  const handleZoomIn = () => setZoom(z => Math.min(z + 0.2, 2));
+  const handleZoomOut = () => setZoom(z => Math.max(z - 0.2, 0.6));
 
   return (
     <div className="relative h-full w-full bg-background flex-1 overflow-hidden">
       <TooltipProvider>
-        <div className="absolute inset-0 bg-background"></div>
-        {waterBodies.map(body => (
-           <div key={body.id} className="absolute bg-blue-200/30 rounded-3xl" style={{...body}}></div>
-        ))}
+        <div className="absolute inset-0 pattern-dots" style={{'--dot-color': 'hsl(var(--border))', '--dot-space': '50px'} as React.CSSProperties}></div>
         
+        <div
+          className="w-full h-full transition-transform duration-300 ease-in-out"
+          style={{ transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)` }}
+        >
         <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+            <defs>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                  <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+              </filter>
+            </defs>
             {trains.map(train => {
-              const trainColor = train.id.includes('T002') || train.id.includes('T003') ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
+              const trainColor = train.type === 'Cargo' ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
               return train.route.map((station, index) => {
                 if (index === 0) return null;
                 const fromStation = train.route[index-1];
@@ -174,20 +196,23 @@ export function MapVisualization({
                 const pos2 = positions[toStation];
                 if (!pos1 || !pos2) return null;
 
+                const pathData = getCurvePath(pos1.x, pos1.y, pos2.x, pos2.y);
+
                 return (
-                  <line 
+                  <path 
                     key={`${train.id}-${fromStation}-${toStation}`}
-                    x1={`${pos1.x}%`} y1={`${pos1.y}%`}
-                    x2={`${pos2.x}%`} y2={`${pos2.y}%`}
+                    d={pathData}
                     stroke={trainColor}
-                    strokeWidth="4"
+                    strokeWidth="3"
+                    fill="none"
                     strokeLinecap="round"
+                    strokeOpacity={0.7}
+                    style={{transform: `translate(calc(${pos1.left} - ${pos1.x}px), calc(${pos1.top} - ${pos1.y}px))`}}
                   />
                 )
               })
-})}
+            })}
         </svg>
-
 
         {Object.entries(positions).map(([id, pos]) => {
           const isStation = trains.some(t => t.route.includes(id));
@@ -204,8 +229,8 @@ export function MapVisualization({
               <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                     <div className={cn("flex items-center justify-center", isTrainHere && "animate-pulse")}>
-                        <div className={cn("w-2.5 h-2.5 rounded-full bg-background border-2 border-muted-foreground", isJunction && "w-3 h-3")}></div>
+                     <div className={cn("flex items-center justify-center")}>
+                        <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/50 border border-background", isJunction && "w-2.5 h-2.5", isTrainHere && "animate-pulse bg-primary")}></div>
                      </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -222,7 +247,7 @@ export function MapVisualization({
             const train = trains.find(t => t.id === trainId);
             if (!train) return null;
             const isActive = train.id === activeTrainId;
-            const trainColor = train.id.includes('T002') || train.id.includes('T003') ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
+            const trainColor = train.type === 'Cargo' ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
             return (
               <Tooltip key={train.id}>
                 <TooltipTrigger asChild>
@@ -234,13 +259,12 @@ export function MapVisualization({
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                     <div className="w-6 h-6 rounded-full bg-background flex items-center justify-center shadow-lg">
+                     <div className="w-7 h-7 rounded-full bg-background flex items-center justify-center shadow-lg border-2" style={{borderColor: trainColor}}>
                         <TrainIcon
                           className={cn(
-                            'h-4 w-4 transition-colors text-primary-foreground',
-                            isActive && 'text-accent-foreground'
+                            'h-4 w-4 transition-colors',
                           )}
-                          style={{ fill: isActive ? 'hsl(var(--accent))' : trainColor }}
+                           style={{ color: trainColor }}
                         />
                      </div>
                   </button>
@@ -267,7 +291,10 @@ export function MapVisualization({
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                    <AlertTriangle className="h-7 w-7 text-destructive-foreground fill-destructive animate-pulse" />
+                    <div className="relative">
+                      <AlertTriangle className="h-8 w-8 text-destructive fill-destructive/50" />
+                      <div className="absolute inset-0 rounded-full bg-destructive/50 animate-ping -z-10"></div>
+                    </div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
@@ -278,11 +305,12 @@ export function MapVisualization({
             );
         })}
 
+        </div>
 
         <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm"><ZoomIn /></Button>
-            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm"><ZoomOut /></Button>
-            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm"><Move /></Button>
+            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm" onClick={handleZoomIn}><Plus /></Button>
+            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm" onClick={handleZoomOut}><Minus /></Button>
+            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm" onClick={() => setPan({x: 0, y: 0})}><Move /></Button>
         </div>
       </TooltipProvider>
     </div>
