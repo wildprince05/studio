@@ -196,7 +196,10 @@ export function MapVisualization({
                 const pos2 = positions[toStation];
                 if (!pos1 || !pos2) return null;
 
-                const pathData = getCurvePath(pos1.x, pos1.y, pos2.x, pos2.y);
+                const pathData = getCurvePath(
+                  (pos1.x / 100) * 100, (pos1.y / 100) * 100, 
+                  (pos2.x / 100) * 100, (pos2.y / 100) * 100
+                );
 
                 return (
                   <path 
@@ -207,7 +210,9 @@ export function MapVisualization({
                     fill="none"
                     strokeLinecap="round"
                     strokeOpacity={0.7}
-                    style={{transform: `translate(calc(${pos1.left} - ${pos1.x}px), calc(${pos1.top} - ${pos1.y}px))`}}
+                    style={{
+                      transform: `translate(calc(${pos1.left} - ${(pos1.x / 100) * 100}px), calc(${pos1.top} - ${(pos1.y / 100) * 100}px))`
+                    }}
                   />
                 )
               })
