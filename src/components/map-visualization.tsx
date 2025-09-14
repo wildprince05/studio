@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { Train, Conflict } from '@/lib/types';
 import {
   Train as TrainIcon,
@@ -92,6 +92,7 @@ export function MapVisualization({
   const [currentStationIndices, setCurrentStationIndices] = useState<Record<string, number>>({});
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const newPositions: Record<string, MapItemPosition> = {};
@@ -168,7 +169,7 @@ export function MapVisualization({
   const handleZoomOut = () => setZoom(z => Math.max(z - 0.2, 0.6));
 
   return (
-    <div className="relative h-full w-full bg-background flex-1 overflow-hidden">
+    <div ref={mapRef} className="relative h-full w-full bg-background flex-1 overflow-hidden">
       <TooltipProvider>
         <div className="absolute inset-0 pattern-dots" style={{'--dot-color': 'hsl(var(--border))', '--dot-space': '50px'} as React.CSSProperties}></div>
         
@@ -194,12 +195,17 @@ export function MapVisualization({
                 const toStation = station;
                 const pos1 = positions[fromStation];
                 const pos2 = positions[toStation];
-                if (!pos1 || !pos2) return null;
+                if (!pos1 || !pos2 || !mapRef.current) return null;
+                
+                const mapWidth = mapRef.current.clientWidth;
+                const mapHeight = mapRef.current.clientHeight;
 
-                const pathData = getCurvePath(
-                  (pos1.x / 100) * 100, (pos1.y / 100) * 100, 
-                  (pos2.x / 100) * 100, (pos2.y / 100) * 100
-                );
+                const x1 = (pos1.x / 100) * mapWidth;
+                const y1 = (pos1.y / 100) * mapHeight;
+                const x2 = (pos2.x / 100) * mapWidth;
+                const y2 = (pos2.y / 100) * mapHeight;
+
+                const pathData = getCurvePath(x1, y1, x2, y2);
 
                 return (
                   <path 
@@ -210,9 +216,6 @@ export function MapVisualization({
                     fill="none"
                     strokeLinecap="round"
                     strokeOpacity={0.7}
-                    style={{
-                      transform: `translate(calc(${pos1.left} - ${(pos1.x / 100) * 100}px), calc(${pos1.top} - ${(pos1.y / 100) * 100}px))`
-                    }}
                   />
                 )
               })
