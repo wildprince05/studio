@@ -19,10 +19,12 @@ import {
   Wrench,
   Gauge,
   TrainFront,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { suggestAlternativeRoutes } from '@/ai/flows/suggest-alternative-routes';
+import { predictDelay } from '@/ai/flows/predict-delay';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from './loading-spinner';
 import { Badge } from './ui/badge';
@@ -35,6 +37,7 @@ import {
 } from './ui/card';
 import { Timeline, TimelineItem } from '@/components/ui/timeline';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 type TrainDetailsSheetProps = {
   train?: Train;
@@ -52,22 +55,28 @@ export function TrainDetailsSheet({
   onOpenChange,
 }: TrainDetailsSheetProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<{
+  const [isSuggestingRoutes, setIsSuggestingRoutes] = useState(false);
+  const [isPredictingDelay, setIsPredictingDelay] = useState(false);
+  const [routeResults, setRouteResults] = useState<{
     routes: string[];
+    reasoning: string;
+  } | null>(null);
+  const [delayPrediction, setDelayPrediction] = useState<{
+    predictedDelay: number;
     reasoning: string;
   } | null>(null);
 
   useEffect(() => {
     if (open) {
-      setResults(null);
+      setRouteResults(null);
+      setDelayPrediction(null);
     }
   }, [open]);
 
   const handleSuggestRoutes = async () => {
     if (!train) return;
-    setIsLoading(true);
-    setResults(null);
+    setIsSuggestingRoutes(true);
+    setRouteResults(null);
     try {
       const response = await suggestAlternativeRoutes({
         currentRoute: train.route.join(' -> '),
@@ -80,7 +89,7 @@ export function TrainDetailsSheet({
           : 'None',
         delayReason: 'Potential congestion and maintenance work ahead.',
       });
-      setResults({
+      setRouteResults({
         routes: response.alternativeRoutes,
         reasoning: response.reasoning,
       });
@@ -92,7 +101,30 @@ export function TrainDetailsSheet({
         description: 'Failed to suggest alternative routes.',
       });
     } finally {
-      setIsLoading(false);
+      setIsSuggestingRoutes(false);
+    }
+  };
+
+  const handlePredictDelay = async () => {
+    if (!train) return;
+    setIsPredictingDelay(true);
+    setDelayPrediction(null);
+    try {
+      const response = await predictDelay({
+        trainSchedule: JSON.stringify(train),
+        weatherData: JSON.stringify(weather),
+        trackMaintenanceData: JSON.stringify(maintenance),
+      });
+      setDelayPrediction(response);
+    } catch (error) {
+      console.error('Error predicting delay:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to predict delay.',
+      });
+    } finally {
+      setIsPredictingDelay(false);
     }
   };
 
@@ -224,24 +256,49 @@ export function TrainDetailsSheet({
             <Separator />
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">
-                Route Optimization
+              <h3 className="text-lg font-semibold mb-4">
+                AI Assistance
               </h3>
-              <Button
-                onClick={handleSuggestRoutes}
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <LoadingSpinner className="mr-2 h-4 w-4" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                Suggest Alternative Routes
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                    onClick={handlePredictDelay}
+                    disabled={isPredictingDelay}
+                    variant="outline"
+                  >
+                    {isPredictingDelay ? (
+                      <LoadingSpinner className="mr-2 h-4 w-4" />
+                    ) : (
+                      <ShieldAlert className="mr-2 h-4 w-4" />
+                    )}
+                    Predict Delay
+                  </Button>
+                <Button
+                  onClick={handleSuggestRoutes}
+                  disabled={isSuggestingRoutes}
+                  variant="outline"
+                >
+                  {isSuggestingRoutes ? (
+                    <LoadingSpinner className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  Suggest Alternative Routes
+                </Button>
+              </div>
             </div>
+            
+            {delayPrediction && (
+                <Alert>
+                  <Sparkles className="h-4 w-4" />
+                  <AlertTitle>AI Delay Prediction</AlertTitle>
+                  <AlertDescription>
+                    Predicted Delay: <strong>{delayPrediction.predictedDelay} minutes</strong>.
+                    <p className="text-xs mt-2">{delayPrediction.reasoning}</p>
+                  </AlertDescription>
+                </Alert>
+            )}
 
-            {results && (
+            {routeResults && (
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
@@ -250,7 +307,7 @@ export function TrainDetailsSheet({
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 list-disc list-inside">
-                    {results.routes.map((route, index) => (
+                    {routeResults.routes.map((route, index) => (
                       <li key={index} className="text-sm">
                         {route}
                       </li>
@@ -259,7 +316,7 @@ export function TrainDetailsSheet({
                   <Separator className="my-4" />
                   <h4 className="font-semibold mb-2">Reasoning</h4>
                   <p className="text-sm text-muted-foreground">
-                    {results.reasoning}
+                    {routeResults.reasoning}
                   </p>
                 </CardContent>
               </Card>
