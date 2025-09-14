@@ -31,15 +31,17 @@ export function TrainList({
   return (
     <ScrollArea className="h-[calc(100vh-160px)]">
       <div className="space-y-2">
-        {trains.map((train) => (
+        {trains.map((train) => {
+          const trainColor = train.id.includes('T002') || train.id.includes('T003') ? 'border-accent' : 'border-primary';
+          return (
           <button
             key={train.id}
             onClick={() => onSelectTrain(train.id)}
             className={cn(
-              'w-full text-left p-3 rounded-lg border transition-colors',
+              'w-full text-left p-3 rounded-lg border-l-4 transition-colors',
               activeTrainId === train.id
-                ? 'bg-primary/10 border-primary'
-                : 'bg-card hover:bg-muted'
+                ? `bg-primary/10 ${trainColor}`
+                : `bg-card hover:bg-muted ${trainColor}`
             )}
           >
             <div className="flex justify-between items-center">
@@ -58,7 +60,7 @@ export function TrainList({
               {train.origin} &rarr; {train.destination}
             </div>
           </button>
-        ))}
+        )})}
       </div>
     </ScrollArea>
   );

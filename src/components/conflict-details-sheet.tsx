@@ -79,7 +79,7 @@ export function ConflictDetailsSheet({
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6">
             <SheetTitle className="flex items-center gap-2 text-2xl">
-              <AlertTriangle className="text-accent h-7 w-7" />
+              <AlertTriangle className="text-destructive h-7 w-7" />
               Conflict Detected
             </SheetTitle>
             <SheetDescription>{conflict.description}</SheetDescription>
@@ -90,7 +90,7 @@ export function ConflictDetailsSheet({
                 <InfoItem icon={MapPin} label="Location" value={conflict.location} />
                 <InfoItem icon={Clock} label="Est. Time" value={new Date(conflict.time).toLocaleTimeString()} />
                 <InfoItem icon={Users} label="Involved" value={`${conflict.trainId1}, ${conflict.trainId2}`} />
-                 <InfoItem icon={AlertTriangle} label="Severity" value={<Badge variant={conflict.severity === 'HIGH' ? 'destructive' : 'default'} className={conflict.severity === 'MEDIUM' ? 'bg-yellow-500' : ''}>{conflict.severity}</Badge>} />
+                 <InfoItem icon={AlertTriangle} label="Severity" value={<Badge variant={conflict.severity === 'HIGH' ? 'destructive' : conflict.severity === 'MEDIUM' ? 'secondary' : 'default'} className={conflict.severity === 'MEDIUM' ? 'bg-yellow-500 text-black' : ''}>{conflict.severity}</Badge>} />
               </CardContent>
             </Card>
 

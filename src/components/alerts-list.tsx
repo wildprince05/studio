@@ -11,10 +11,10 @@ type AlertsListProps = {
 
 const severityStyles = {
   HIGH: {
-    icon: 'text-red-500',
-    border: 'border-red-500/50',
-    bg: 'bg-red-500/10',
-    activeBg: 'bg-red-500/20',
+    icon: 'text-destructive',
+    border: 'border-destructive/50',
+    bg: 'bg-destructive/10',
+    activeBg: 'bg-destructive/20',
   },
   MEDIUM: {
     icon: 'text-yellow-500',

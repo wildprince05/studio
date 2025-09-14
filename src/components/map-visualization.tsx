@@ -147,20 +147,26 @@ export function MapVisualization({
     });
     return newTrainPositions;
   }, [trains, positions, currentStationIndices]);
+  
+  const waterBodies = useMemo(() => {
+    return [
+        { id: 'water1', top: '70%', left: '80%', width: '30%', height: '30%' },
+        { id: 'water2', top: '0%', left: '75%', width: '25%', height: '40%' },
+    ];
+  }, []);
 
   return (
     <div className="relative h-full w-full bg-background flex-1 overflow-hidden">
       <TooltipProvider>
-        <div className="absolute inset-0 bg-background pattern-dots pattern-gray-300 pattern-bg-white pattern-size-6 pattern-opacity-20 dark:pattern-gray-700 dark:pattern-bg-slate-900"></div>
+        <div className="absolute inset-0 bg-background"></div>
+        {waterBodies.map(body => (
+           <div key={body.id} className="absolute bg-blue-200/30 rounded-3xl" style={{...body}}></div>
+        ))}
         
         <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
-            <defs>
-              <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
-                <circle cx="5" cy="5" r="5" fill="hsl(var(--muted-foreground) / 0.5)" />
-              </marker>
-            </defs>
-            {trains.map(train => (
-              train.route.map((station, index) => {
+            {trains.map(train => {
+              const trainColor = train.id.includes('T002') || train.id.includes('T003') ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
+              return train.route.map((station, index) => {
                 if (index === 0) return null;
                 const fromStation = train.route[index-1];
                 const toStation = station;
@@ -173,13 +179,13 @@ export function MapVisualization({
                     key={`${train.id}-${fromStation}-${toStation}`}
                     x1={`${pos1.x}%`} y1={`${pos1.y}%`}
                     x2={`${pos2.x}%`} y2={`${pos2.y}%`}
-                    stroke="hsl(var(--muted-foreground) / 0.3)"
-                    strokeWidth="1"
-                    strokeDasharray="4 4"
+                    stroke={trainColor}
+                    strokeWidth="4"
+                    strokeLinecap="round"
                   />
                 )
               })
-            ))}
+})}
         </svg>
 
 
@@ -192,11 +198,15 @@ export function MapVisualization({
                 const currentStationIndex = currentStationIndices[train.id] ?? 0;
                 return train.route[currentStationIndex] === id;
             });
+            const isJunction = trains.filter(t => t.route.includes(id)).length > 1;
+            
             return (
               <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
                 <Tooltip>
-                  <TooltipTrigger>
-                    <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/30 transition-all", isTrainHere && "w-3 h-3 bg-primary animate-pulse ring-4 ring-primary/30")}></div>
+                  <TooltipTrigger asChild>
+                     <div className={cn("flex items-center justify-center", isTrainHere && "animate-pulse")}>
+                        <div className={cn("w-2.5 h-2.5 rounded-full bg-background border-2 border-muted-foreground", isJunction && "w-3 h-3")}></div>
+                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{id}</p>
@@ -212,6 +222,7 @@ export function MapVisualization({
             const train = trains.find(t => t.id === trainId);
             if (!train) return null;
             const isActive = train.id === activeTrainId;
+            const trainColor = train.id.includes('T002') || train.id.includes('T003') ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
             return (
               <Tooltip key={train.id}>
                 <TooltipTrigger asChild>
@@ -223,12 +234,15 @@ export function MapVisualization({
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                    <TrainIcon
-                      className={cn(
-                        'h-6 w-6 transition-colors text-primary-foreground fill-primary',
-                        isActive && 'fill-accent text-accent-foreground'
-                      )}
-                    />
+                     <div className="w-6 h-6 rounded-full bg-background flex items-center justify-center shadow-lg">
+                        <TrainIcon
+                          className={cn(
+                            'h-4 w-4 transition-colors text-primary-foreground',
+                            isActive && 'text-accent-foreground'
+                          )}
+                          style={{ fill: isActive ? 'hsl(var(--accent))' : trainColor }}
+                        />
+                     </div>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -253,7 +267,7 @@ export function MapVisualization({
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                    <AlertTriangle className="h-7 w-7 text-accent-foreground fill-accent animate-pulse" />
+                    <AlertTriangle className="h-7 w-7 text-destructive-foreground fill-destructive animate-pulse" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top">
