@@ -35,50 +35,36 @@ export function RouteTimeline({ train }: RouteTimelineProps) {
   const { timelineStations, progress } = generateTimelineData(train);
 
   return (
-    <div className="w-full overflow-x-auto p-8">
-      <div className="relative w-full flex justify-between items-center h-20">
-        {/* Horizontal Line */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-primary/50 -translate-y-1/2" />
-
-         {/* Moving Train Icon */}
-         <div
-          className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-linear z-10"
-          style={{ left: `calc(${progress * 100}% - 12px)` }}
-        >
-          <TrainFront className="h-6 w-6 text-primary" />
-        </div>
+    <div className="w-full overflow-x-auto py-4 px-2">
+      <div className="relative flex justify-between items-start">
+        {/* Background Line */}
+        <div className="absolute top-2 left-0 w-full h-0.5 bg-muted" />
+        
+        {/* Progress Line */}
+        <div 
+          className="absolute top-2 left-0 h-0.5 bg-primary"
+          style={{ width: `${progress * 100}%` }}
+        />
 
         {timelineStations.map((station, index) => (
-          <div key={station.name} className="relative flex flex-col items-center">
+          <div key={station.name} className="relative flex flex-col items-center flex-1 px-2">
              {/* Station Dot */}
              <div className={cn(
-                "absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-primary transition-colors",
-                station.isPassed || station.isCurrent ? "bg-primary" : "bg-card"
-              )} />
-            
-            {/* Station Label and Icon Container */}
-            <div
-              className={cn(
-                'absolute flex flex-col items-center gap-2 w-32 text-center',
-                index % 2 === 0 ? 'bottom-full mb-2' : 'top-full mt-2'
+                "relative z-10 h-4 w-4 rounded-full border-2 transition-colors",
+                station.isPassed || station.isCurrent ? "bg-primary border-primary" : "bg-card border-muted-foreground",
+                station.isCurrent && "animate-pulse"
+              )}>
+              {station.isCurrent && (
+                 <TrainFront className="absolute -top-6 left-1/2 -translate-x-1/2 h-5 w-5 text-primary" />
               )}
-            >
-              {/* Icon */}
-              <div
-                className={cn(
-                  'h-8 w-8 rounded-full bg-primary flex items-center justify-center ring-4 ring-card transition-all',
-                   (station.isPassed || station.isCurrent) ? 'bg-primary' : 'bg-muted',
-                   station.isCurrent && 'animate-pulse'
-                )}
-              >
-                <Circle className="h-3 w-3 text-primary-foreground" />
-              </div>
-
-              {/* Label */}
-              <div className="p-2 rounded-md bg-card border shadow-sm">
-                <p className="font-semibold text-xs text-foreground truncate">{station.name}</p>
-              </div>
-
+             </div>
+            
+            {/* Station Label */}
+            <div className="mt-2 text-center">
+              <p className={cn(
+                "font-semibold text-xs truncate",
+                 (station.isPassed || station.isCurrent) ? "text-foreground" : "text-muted-foreground"
+                )}>{station.name}</p>
             </div>
           </div>
         ))}
