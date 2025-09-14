@@ -8,6 +8,9 @@ import {
   Sparkles,
   Train as TrainIcon,
   Route,
+  Activity,
+  MapPin,
+  Circle,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -150,8 +153,8 @@ export function DashboardLayout({
       </Sidebar>
 
       <SidebarInset>
-        <div className="relative flex h-full min-h-svh flex-1 flex-col">
-          <div className="absolute top-4 right-4 z-10">
+        <div className="relative flex h-full min-h-svh flex-1 flex-col p-4">
+          <div className="absolute top-4 right-4 z-20">
             <Button
               size="lg"
               onClick={onDetectConflicts}
@@ -167,36 +170,29 @@ export function DashboardLayout({
             </Button>
           </div>
 
-          {activeTrain ? (
-             <div className="flex flex-col h-full flex-1 items-center justify-center p-8">
-                <Card className="w-full max-w-6xl">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Route/> {activeTrain.name} Route</CardTitle>
-                        <CardDescription>{activeTrain.origin} &rarr; {activeTrain.destination}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <RouteTimeline train={activeTrain} />
-                    </CardContent>
-                </Card>
+          <div className="flex-1 w-full h-full border rounded-xl bg-card/20 backdrop-blur-sm p-6 relative flex flex-col">
+            <div className="flex items-center gap-2 text-xl font-medium mb-4">
+                <Activity className="text-primary" />
+                <h2>Live Network Status</h2>
+            </div>
+            <div className="absolute top-6 right-6 z-10 bg-background/50 backdrop-blur-sm p-3 rounded-lg border">
+                <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-green-500 fill-green-500"/> On Time</li>
+                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-yellow-400 fill-yellow-400"/> Delayed</li>
+                    <li className="flex items-center gap-2"><Circle className="h-3 w-3 text-red-500 fill-red-500"/> Conflict</li>
+                    <li className="flex items-center gap-2"><MapPin className="h-3 w-3 text-gray-400"/> Stations</li>
+                </ul>
+            </div>
+             <div className="flex-1 w-full h-full rounded-lg overflow-hidden">
+                <MapVisualization
+                  trains={trains}
+                  conflicts={conflicts}
+                  activeTrainId={activeTrain?.id}
+                  activeConflictId={activeConflict?.id}
+                  onSelectTrain={onSelectTrain}
+                />
              </div>
-          ) : trains.length > 0 ? (
-            <MapVisualization
-              trains={trains}
-              conflicts={conflicts}
-              activeTrainId={activeTrain?.id}
-              activeConflictId={activeConflict?.id}
-              onSelectTrain={onSelectTrain}
-            />
-          ) : (
-             <div className="flex h-full flex-1 items-center justify-center">
-                <Card className="w-[380px]">
-                  <CardHeader>
-                    <CardTitle>No Trains Available</CardTitle>
-                    <CardDescription>There are no trains to display on the map.</CardDescription>
-                  </CardHeader>
-                </Card>
-             </div>
-          )}
+          </div>
         </div>
       </SidebarInset>
 

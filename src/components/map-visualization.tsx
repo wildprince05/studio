@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { Train, Conflict } from '@/lib/types';
 import {
-  Train as TrainIcon,
   AlertTriangle,
   Move,
-  ZoomIn,
-  ZoomOut,
-  Minus,
   Plus,
+  Minus,
+  MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -169,26 +167,16 @@ export function MapVisualization({
   const handleZoomOut = () => setZoom(z => Math.max(z - 0.2, 0.6));
 
   return (
-    <div ref={mapRef} className="relative h-full w-full bg-background flex-1 overflow-hidden">
+    <div ref={mapRef} className="relative h-full w-full bg-transparent flex-1 overflow-hidden">
       <TooltipProvider>
-        <div className="absolute inset-0 pattern-dots" style={{'--dot-color': 'hsl(var(--border))', '--dot-space': '50px'} as React.CSSProperties}></div>
+        <div className="absolute inset-0 pattern-dots" style={{'--dot-color': 'hsl(var(--border)/0.2)', '--dot-space': '30px'} as React.CSSProperties}></div>
         
         <div
           className="w-full h-full transition-transform duration-300 ease-in-out"
           style={{ transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)` }}
         >
         <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
-            <defs>
-              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                  <feMerge>
-                      <feMergeNode in="coloredBlur"/>
-                      <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-              </filter>
-            </defs>
             {trains.map(train => {
-              const trainColor = train.type === 'Cargo' ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
               return train.route.map((station, index) => {
                 if (index === 0) return null;
                 const fromStation = train.route[index-1];
@@ -211,11 +199,11 @@ export function MapVisualization({
                   <path 
                     key={`${train.id}-${fromStation}-${toStation}`}
                     d={pathData}
-                    stroke={trainColor}
-                    strokeWidth="3"
+                    strokeDasharray="4 4"
+                    stroke={'hsl(var(--primary)/0.5)'}
+                    strokeWidth="2"
                     fill="none"
                     strokeLinecap="round"
-                    strokeOpacity={0.7}
                   />
                 )
               })
@@ -227,18 +215,12 @@ export function MapVisualization({
           const isConflictLocation = conflicts.some(c => c.location === id);
           
           if (isStation && !isConflictLocation) {
-             const isTrainHere = trains.some(train => {
-                const currentStationIndex = currentStationIndices[train.id] ?? 0;
-                return train.route[currentStationIndex] === id;
-            });
-            const isJunction = trains.filter(t => t.route.includes(id)).length > 1;
-            
             return (
               <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <div className={cn("flex items-center justify-center")}>
-                        <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/50 border border-background", isJunction && "w-2.5 h-2.5", isTrainHere && "animate-pulse bg-primary")}></div>
+                        <MapPin className="w-5 h-5 text-gray-400" />
                      </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -255,25 +237,22 @@ export function MapVisualization({
             const train = trains.find(t => t.id === trainId);
             if (!train) return null;
             const isActive = train.id === activeTrainId;
-            const trainColor = train.type === 'Cargo' ? 'hsl(var(--accent))' : 'hsl(var(--primary))';
+            
+            const trainColor = train.delay > 0 ? 'bg-yellow-400' : 'bg-green-500';
+            const trainRingColor = train.delay > 0 ? 'ring-yellow-400' : 'ring-green-500';
+            
             return (
               <Tooltip key={train.id}>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => onSelectTrain(train.id)}
                     className={cn(
-                      'absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-1000 linear transform hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary rounded-full group',
+                      'absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-1000 linear transform hover:scale-125 focus:outline-none rounded-full group',
                       isActive ? 'z-20 scale-125' : 'z-10'
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
-                     <div className="w-7 h-7 rounded-full bg-background flex items-center justify-center shadow-lg border-2" style={{borderColor: trainColor}}>
-                        <TrainIcon
-                          className={cn(
-                            'h-4 w-4 transition-colors',
-                          )}
-                           style={{ color: trainColor }}
-                        />
+                     <div className={cn("w-3 h-3 rounded-full ring-2 ring-offset-2 ring-offset-background", trainRingColor, trainColor)}>
                      </div>
                   </button>
                 </TooltipTrigger>
@@ -300,8 +279,8 @@ export function MapVisualization({
                     style={{ top: pos.top, left: pos.left }}
                   >
                     <div className="relative">
-                      <AlertTriangle className="h-8 w-8 text-destructive fill-destructive/50" />
-                      <div className="absolute inset-0 rounded-full bg-destructive/50 animate-ping -z-10"></div>
+                      <AlertTriangle className="h-8 w-8 text-red-500 fill-red-500/50" />
+                      <div className="absolute inset-0 rounded-full bg-red-500/50 animate-ping -z-10"></div>
                     </div>
                   </div>
                 </TooltipTrigger>
