@@ -33,14 +33,8 @@ import { TrainDetailsSheet } from '@/components/train-details-sheet';
 import { ConflictDetailsSheet } from '@/components/conflict-details-sheet';
 import { UserPreferencesDialog } from '@/components/user-preferences-dialog';
 import { LoadingSpinner } from '@/components/loading-spinner';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from './ui/card';
-import { RouteTimeline } from './route-timeline';
+import { Header } from '@/components/header';
+import { StatsCards } from '@/components/stats-cards';
 
 type DashboardLayoutProps = {
   trains: Train[];
@@ -81,6 +75,14 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isPrefsOpen, setIsPrefsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('trains');
+
+  const stats = {
+    onTimePerformance: 85,
+    averageDelay: 7,
+    totalPassengers: 12543,
+    energyEfficiency: 92,
+    conflictsResolved: 34,
+  };
 
   return (
     <SidebarProvider>
@@ -154,7 +156,9 @@ export function DashboardLayout({
       </Sidebar>
 
       <SidebarInset>
-        <div className="relative flex h-full min-h-svh flex-1 flex-col p-4">
+        <div className="relative flex h-full min-h-svh flex-1 flex-col p-4 space-y-4">
+            <Header />
+            <StatsCards stats={stats} />
           <div className="flex-1 w-full h-full border rounded-xl bg-card/20 backdrop-blur-sm p-6 relative flex flex-col">
              <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex items-center gap-2 text-xl font-medium">

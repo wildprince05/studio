@@ -1,4 +1,4 @@
-import { TrainFront } from 'lucide-react';
+import { BrainCircuit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Logo({ className }: { className?: string }) {
@@ -9,8 +9,8 @@ export function Logo({ className }: { className?: string }) {
         className
       )}
     >
-      <TrainFront className="h-6 w-6" />
-      <span className="font-headline">RailPilot</span>
+      <BrainCircuit className="h-6 w-6" />
+      <span className="font-headline hidden">RailPilot</span>
     </div>
   );
 }
