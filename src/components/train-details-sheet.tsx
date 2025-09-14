@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Train, Weather, Maintenance } from '@/lib/types';
 import {
   Sheet,
@@ -18,6 +18,7 @@ import {
   Wind,
   Wrench,
   Gauge,
+  TrainFront,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -32,6 +33,8 @@ import {
   CardHeader,
   CardTitle,
 } from './ui/card';
+import { Timeline, TimelineItem } from '@/components/ui/timeline';
+import { cn } from '@/lib/utils';
 
 type TrainDetailsSheetProps = {
   train?: Train;
@@ -54,6 +57,12 @@ export function TrainDetailsSheet({
     routes: string[];
     reasoning: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setResults(null);
+    }
+  }, [open]);
 
   const handleSuggestRoutes = async () => {
     if (!train) return;
@@ -88,6 +97,16 @@ export function TrainDetailsSheet({
   };
 
   if (!train) return null;
+
+  const departure = new Date(train.departureTime);
+  const arrival = new Date(train.arrivalTime);
+  const totalDuration = arrival.getTime() - departure.getTime();
+  const segmentDuration = totalDuration / (train.route.length - 1);
+
+  const now = Date.now();
+  const elapsedTime = now - departure.getTime();
+  const progress = Math.max(0, Math.min(1, elapsedTime / totalDuration));
+  const currentSegment = Math.floor(progress * (train.route.length - 1));
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -135,6 +154,34 @@ export function TrainDetailsSheet({
                     value={`${train.currentSpeed} km/h`}
                   />
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Route /> Route Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Timeline>
+                  {train.route.map((station, index) => {
+                    const eta = new Date(departure.getTime() + index * segmentDuration);
+                    const isPassed = index < currentSegment;
+                    const isCurrent = index === currentSegment && progress < 1;
+                    
+                    return (
+                    <TimelineItem key={station}>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("font-medium", isPassed && 'text-muted-foreground line-through')}>{station}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ETA: {eta.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      {isCurrent && <TrainFront className="h-5 w-5 text-primary animate-pulse" />}
+                    </TimelineItem>
+                  )})}
+                </Timeline>
               </CardContent>
             </Card>
 
