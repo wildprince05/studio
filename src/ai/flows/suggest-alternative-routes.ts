@@ -68,6 +68,13 @@ const suggestAlternativeRoutesFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output || !Array.isArray(output.alternativeRoutes)) {
+      return {
+        alternativeRoutes: [],
+        reasoning:
+          'The model could not suggest any alternative routes at this time.',
+      };
+    }
+    return output;
   }
 );

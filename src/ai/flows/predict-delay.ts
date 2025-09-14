@@ -49,6 +49,13 @@ const predictDelayFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await predictDelayPrompt(input);
-    return output!;
+    if (!output) {
+      return {
+        predictedDelay: 0,
+        reasoning:
+          'Could not predict delay at this time due to an unexpected model response.',
+      };
+    }
+    return output;
   }
 );

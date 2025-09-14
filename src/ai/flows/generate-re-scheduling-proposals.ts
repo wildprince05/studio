@@ -69,6 +69,12 @@ const generateReSchedulingProposalsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      return {
+        proposals: '[]',
+        reasoning: 'The AI model could not generate proposals at this time.',
+      };
+    }
+    return output;
   }
 );
