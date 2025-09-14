@@ -6,9 +6,10 @@ import { Bell, RefreshCw, Zap } from 'lucide-react';
 import { Logo } from './logo';
 
 export function Header() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -29,8 +30,8 @@ export function Header() {
       <div className="flex items-center gap-4">
         <div className="text-right">
           <p className="text-sm text-muted-foreground">System Time</p>
-          <p className="font-mono font-semibold text-lg">
-            {time.toLocaleTimeString()}
+          <p className="font-mono font-semibold text-lg h-6">
+            {time ? time.toLocaleTimeString() : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -48,3 +49,4 @@ export function Header() {
     </header>
   );
 }
+
