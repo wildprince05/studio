@@ -2,7 +2,7 @@
 
 import type { Train } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Circle } from 'lucide-react';
+import { Circle, TrainFront } from 'lucide-react';
 
 type RouteTimelineProps = {
   train: Train;
@@ -20,16 +20,19 @@ const generateTimelineData = (train: Train) => {
   const segmentCount = train.route.length - 1;
   const currentSegment = Math.floor(progress * segmentCount);
   
-  return train.route.map((station, index) => ({
-      name: station,
-      isCurrent: index === currentSegment,
-      isPassed: index < currentSegment || progress >= 1,
-  }));
+  return {
+    timelineStations: train.route.map((station, index) => ({
+        name: station,
+        isCurrent: index === currentSegment,
+        isPassed: index < currentSegment || progress >= 1,
+    })),
+    progress,
+  };
 };
 
 
 export function RouteTimeline({ train }: RouteTimelineProps) {
-  const timelineData = generateTimelineData(train);
+  const { timelineStations, progress } = generateTimelineData(train);
 
   return (
     <div className="w-full overflow-x-auto p-8">
@@ -37,7 +40,15 @@ export function RouteTimeline({ train }: RouteTimelineProps) {
         {/* Horizontal Line */}
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-primary/50 -translate-y-1/2" />
 
-        {timelineData.map((station, index) => (
+         {/* Moving Train Icon */}
+         <div
+          className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-linear z-10"
+          style={{ left: `calc(${progress * 100}% - 12px)` }}
+        >
+          <TrainFront className="h-6 w-6 text-primary" />
+        </div>
+
+        {timelineStations.map((station, index) => (
           <div key={station.name} className="relative flex flex-col items-center">
              {/* Station Dot */}
              <div className={cn(
