@@ -60,6 +60,15 @@ const detectTrainConflictsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await detectTrainConflictsPrompt(input);
-    return output!;
+    
+    // Ensure that if the output is null or conflicts are not an array, we return a valid empty state.
+    if (!output || !Array.isArray(output.conflicts)) {
+      return {
+        conflicts: [],
+        summary: 'No conflicts were detected during the scan.',
+      };
+    }
+    
+    return output;
   }
 );
