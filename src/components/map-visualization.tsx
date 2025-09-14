@@ -113,16 +113,43 @@ export function MapVisualization({
     const newTrainPositions: Record<string, MapItemPosition> = {};
     trains.forEach(train => {
       const currentStationIndex = currentStationIndices[train.id] ?? 0;
+      const nextStationIndex = Math.min(train.route.length - 1, currentStationIndex + 1);
+      
       const currentStationName = train.route[currentStationIndex];
-      if (positions[currentStationName]) {
-        newTrainPositions[train.id] = positions[currentStationName];
+      const nextStationName = train.route[nextStationIndex];
+
+      const pos1 = positions[currentStationName];
+      const pos2 = positions[nextStationName];
+
+      if (pos1 && pos2) {
+          const now = Date.now();
+          const departureTime = new Date(train.departureTime).getTime();
+          const arrivalTime = new Date(train.arrivalTime).getTime();
+          const totalDuration = arrivalTime - departureTime;
+          const segmentDuration = totalDuration / (train.route.length - 1);
+          const segmentStartTime = departureTime + currentStationIndex * segmentDuration;
+          
+          let progress = 0;
+          if(now > segmentStartTime && currentStationIndex < train.route.length -1) {
+              const elapsedTimeInSegment = now - segmentStartTime;
+              progress = Math.min(1, elapsedTimeInSegment / segmentDuration);
+          }
+
+        newTrainPositions[train.id] = {
+          x: pos1.x + (pos2.x - pos1.x) * progress,
+          y: pos1.y + (pos2.y - pos1.y) * progress,
+          top: `${pos1.y + (pos2.y - pos1.y) * progress}%`,
+          left: `${pos1.x + (pos2.x - pos1.x) * progress}%`,
+        };
+      } else if (pos1) {
+        newTrainPositions[train.id] = pos1;
       }
     });
     return newTrainPositions;
   }, [trains, positions, currentStationIndices]);
 
   return (
-    <div className="relative h-full w-full bg-card flex-1 overflow-hidden">
+    <div className="relative h-full w-full bg-background flex-1 overflow-hidden">
       <TooltipProvider>
         <div className="absolute inset-0 bg-background pattern-dots pattern-gray-300 pattern-bg-white pattern-size-6 pattern-opacity-20 dark:pattern-gray-700 dark:pattern-bg-slate-900"></div>
         
@@ -147,8 +174,8 @@ export function MapVisualization({
                     x1={`${pos1.x}%`} y1={`${pos1.y}%`}
                     x2={`${pos2.x}%`} y2={`${pos2.y}%`}
                     stroke="hsl(var(--muted-foreground) / 0.3)"
-                    strokeWidth="2"
-                    strokeDasharray="4 6"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
                   />
                 )
               })
@@ -169,7 +196,7 @@ export function MapVisualization({
               <div key={id} style={{...pos}} className="absolute -translate-x-1/2 -translate-y-1/2">
                 <Tooltip>
                   <TooltipTrigger>
-                    <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/50 transition-all", isTrainHere && "w-3 h-3 bg-primary animate-pulse ring-4 ring-primary/30")}></div>
+                    <div className={cn("w-2 h-2 rounded-full bg-muted-foreground/30 transition-all", isTrainHere && "w-3 h-3 bg-primary animate-pulse ring-4 ring-primary/30")}></div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{id}</p>
@@ -191,25 +218,17 @@ export function MapVisualization({
                   <button
                     onClick={() => onSelectTrain(train.id)}
                     className={cn(
-                      'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary rounded-full p-1 group',
+                      'absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-1000 linear transform hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary rounded-full group',
                       isActive ? 'z-20 scale-125' : 'z-10'
                     )}
                     style={{ top: pos.top, left: pos.left }}
                   >
                     <TrainIcon
                       className={cn(
-                        'h-8 w-8 transition-colors text-primary-foreground fill-primary',
+                        'h-6 w-6 transition-colors text-primary-foreground fill-primary',
                         isActive && 'fill-accent text-accent-foreground'
                       )}
                     />
-                    <span
-                      className={cn(
-                        'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm mt-1 transition-opacity group-hover:opacity-100',
-                        isActive ? 'opacity-100' : 'opacity-0'
-                      )}
-                    >
-                      {train.name}
-                    </span>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
