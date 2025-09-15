@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
@@ -6,11 +5,23 @@ import { Bell, RefreshCw, Zap } from 'lucide-react';
 import { Logo } from './logo';
 
 export function Header() {
-  const [time, setTime] = useState<Date | null>(null);
+  const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
-    setTime(new Date());
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    const updateIndianTime = () => {
+      const now = new Date();
+      const indianTime = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setTime(indianTime);
+    };
+
+    updateIndianTime();
+    const timer = setInterval(updateIndianTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -29,9 +40,9 @@ export function Header() {
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <p className="text-sm text-muted-foreground">System Time</p>
+          <p className="text-sm text-muted-foreground">System Time (IST)</p>
           <p className="font-mono font-semibold text-lg h-6">
-            {time ? time.toLocaleTimeString() : ''}
+            {time || ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -49,4 +60,3 @@ export function Header() {
     </header>
   );
 }
-
