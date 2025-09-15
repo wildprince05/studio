@@ -68,13 +68,22 @@ const generateReSchedulingProposalsFlow = ai.defineFlow(
     outputSchema: GenerateReSchedulingProposalsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    if (!output) {
+    try {
+      const {output} = await prompt(input);
+      if (!output) {
+        return {
+          proposals: '[]',
+          reasoning: 'The AI model could not generate proposals at this time.',
+        };
+      }
+      return output;
+    } catch (error) {
+      console.error('Error in generateReSchedulingProposalsFlow:', error);
       return {
         proposals: '[]',
-        reasoning: 'The AI model could not generate proposals at this time.',
+        reasoning:
+          'An error occurred while generating re-scheduling proposals.',
       };
     }
-    return output;
   }
 );

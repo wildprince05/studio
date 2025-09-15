@@ -48,14 +48,22 @@ const predictDelayFlow = ai.defineFlow(
     outputSchema: PredictDelayOutputSchema,
   },
   async input => {
-    const {output} = await predictDelayPrompt(input);
-    if (!output) {
+    try {
+      const {output} = await predictDelayPrompt(input);
+      if (!output) {
+        return {
+          predictedDelay: 0,
+          reasoning:
+            'Could not predict delay at this time due to an unexpected model response.',
+        };
+      }
+      return output;
+    } catch (error) {
+      console.error('Error in predictDelayFlow:', error);
       return {
         predictedDelay: 0,
-        reasoning:
-          'Could not predict delay at this time due to an unexpected model response.',
+        reasoning: 'An error occurred while predicting the delay.',
       };
     }
-    return output;
   }
 );

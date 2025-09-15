@@ -59,16 +59,23 @@ const detectTrainConflictsFlow = ai.defineFlow(
     outputSchema: DetectTrainConflictsOutputSchema,
   },
   async input => {
-    const {output} = await detectTrainConflictsPrompt(input);
-    
-    // Ensure that if the output is null or conflicts are not an array, we return a valid empty state.
-    if (!output || !Array.isArray(output.conflicts)) {
-      return {
+    try {
+      const {output} = await detectTrainConflictsPrompt(input);
+      
+      if (!output || !Array.isArray(output.conflicts)) {
+        return {
+          conflicts: [],
+          summary: 'No conflicts were detected during the scan.',
+        };
+      }
+      
+      return output;
+    } catch (error) {
+       console.error('Error in detectTrainConflictsFlow:', error);
+       return {
         conflicts: [],
-        summary: 'No conflicts were detected during the scan.',
+        summary: 'An error occurred while detecting conflicts.',
       };
     }
-    
-    return output;
   }
 );
