@@ -10,6 +10,9 @@ export default {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        'pattern-satellite': "url('https://images.unsplash.com/photo-1550938343-a02d3a433308?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+      },
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],

@@ -170,7 +170,7 @@ export function MapVisualization({
   return (
     <div ref={mapRef} className="relative h-full w-full bg-transparent flex-1 overflow-hidden">
       <TooltipProvider>
-        <div className="absolute inset-0 pattern-grid" style={{'--grid-color': 'hsl(var(--primary)/0.1)', '--grid-size': '30px'} as React.CSSProperties}></div>
+        <div className="absolute inset-0 bg-pattern-satellite bg-cover bg-center"></div>
         
         <div
           className="w-full h-full transition-transform duration-300 ease-in-out"
@@ -200,7 +200,7 @@ export function MapVisualization({
                   <path 
                     key={`${train.id}-${fromStation}-${toStation}`}
                     d={pathData}
-                    stroke={'hsl(var(--primary)/0.3)'}
+                    stroke={'hsl(var(--primary)/0.5)'}
                     strokeWidth="2"
                     strokeDasharray="4 4"
                     fill="none"
@@ -220,7 +220,7 @@ export function MapVisualization({
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <div className={cn("flex items-center justify-center")}>
-                        <div className="w-2 h-2 bg-primary/50 border border-primary rounded-full" />
+                        <div className="w-2 h-2 bg-primary/70 border-2 border-primary rounded-full" />
                      </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -238,7 +238,7 @@ export function MapVisualization({
             if (!train) return null;
             const isActive = train.id === activeTrainId;
             
-            const trainColor = train.delay > 0 ? 'text-yellow-400' : 'text-green-500';
+            const trainColor = train.delay > 0 ? 'text-yellow-400' : 'text-green-400';
             
             return (
               <Tooltip key={train.id}>
@@ -284,6 +284,7 @@ export function MapVisualization({
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="font-semibold">Conflict: {conflict.location}</p>
+
                   <p className="text-sm text-muted-foreground">Severity: {conflict.severity}</p>
                 </TooltipContent>
               </Tooltip>
