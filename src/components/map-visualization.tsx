@@ -170,7 +170,7 @@ export function MapVisualization({
   return (
     <div ref={mapRef} className="relative h-full w-full bg-transparent flex-1 overflow-hidden">
       <TooltipProvider>
-        <div className="absolute inset-0 pattern-dots" style={{'--dot-color': 'hsl(var(--border)/0.2)', '--dot-space': '30px'} as React.CSSProperties}></div>
+        <div className="absolute inset-0 pattern-grid" style={{'--grid-color': 'hsl(var(--primary)/0.1)', '--grid-size': '30px'} as React.CSSProperties}></div>
         
         <div
           className="w-full h-full transition-transform duration-300 ease-in-out"
@@ -200,8 +200,9 @@ export function MapVisualization({
                   <path 
                     key={`${train.id}-${fromStation}-${toStation}`}
                     d={pathData}
-                    stroke={'hsl(var(--primary)/0.5)'}
+                    stroke={'hsl(var(--primary)/0.3)'}
                     strokeWidth="2"
+                    strokeDasharray="4 4"
                     fill="none"
                   />
                 )
@@ -219,7 +220,7 @@ export function MapVisualization({
                 <Tooltip>
                   <TooltipTrigger asChild>
                      <div className={cn("flex items-center justify-center")}>
-                        <div className="w-2.5 h-2.5 bg-gray-400 border-2 border-background rounded-full" />
+                        <div className="w-2 h-2 bg-primary/50 border border-primary rounded-full" />
                      </div>
                   </TooltipTrigger>
                   <TooltipContent>

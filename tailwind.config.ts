@@ -110,14 +110,14 @@ export default {
     }),
      plugin(function ({ addUtilities, theme }) {
       const newUtilities = {
-        '.pattern-dots': {
-          '--dot-color': 'rgba(120, 120, 120, 0.2)',
-          '--dot-size': '1px',
-          '--dot-space': '30px',
-          'backgroundImage': `radial-gradient(var(--dot-color) var(--dot-size), transparent var(--dot-size)),
-                           radial-gradient(var(--dot-color) var(--dot-size), transparent var(--dot-size))`,
-          'backgroundSize': 'var(--dot-space) var(--dot-space)',
-           'backgroundPosition': '0 0, calc(var(--dot-space) / 2) calc(var(--dot-space) / 2)',
+        '.pattern-grid': {
+            '--grid-size': '30px',
+            '--grid-color': 'hsl(var(--border) / 0.5)',
+            'backgroundImage': `
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px)
+            `,
+            'backgroundSize': 'var(--grid-size) var(--grid-size)',
         },
       }
       addUtilities(newUtilities, {
