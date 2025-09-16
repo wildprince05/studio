@@ -40,6 +40,7 @@ const detectTrainConflictsPrompt = ai.definePrompt({
   name: 'detectTrainConflictsPrompt',
   input: {schema: DetectTrainConflictsInputSchema},
   output: {schema: DetectTrainConflictsOutputSchema},
+  model: 'googleai/gemini-2.5-flash-grounded',
   prompt: `You are an expert in detecting potential train conflicts based on schedule data, weather data, and track maintenance data. Analyze the provided data and identify any potential conflicts between trains.
 
 Schedule Data: {{{scheduleData}}}
